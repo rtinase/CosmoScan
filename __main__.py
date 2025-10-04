@@ -1,36 +1,23 @@
 # Імпорт необхідних бібліотек
-import pandas as pd
-import numpy as np
+import pandas
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as pyplot
 
 # Крок 1: Створення вибірки даних
-def load_sample_data():
-    """
-    Створює вибірку даних для демонстрації.
-    У реальному випадку ви б завантажували дані з файлу.
-    """
-    print("Створення вибірки даних...")
-    
-    # Створюємо простий набір даних для класифікації екзопланет
-    data = {
-        'koi_disposition': ['CONFIRMED', 'CONFIRMED', 'CANDIDATE', 'FALSE POSITIVE', 
-                           'FALSE POSITIVE', 'CANDIDATE', 'CONFIRMED', 'FALSE POSITIVE'],
-        'koi_period': [5.7, 2.8, 4.2, 1.3, 6.5, 3.9, 7.1, 0.5],
-        'koi_duration': [2.5, 1.9, 3.2, 0.8, 1.1, 2.7, 3.5, 0.3],
-        'koi_depth': [0.05, 0.08, 0.03, 0.01, 0.02, 0.04, 0.09, 0.01],
-        'koi_model_snr': [15.2, 20.4, 12.1, 5.6, 6.8, 11.3, 25.7, 4.2],
-        'koi_prad': [2.1, 1.8, 2.5, 0.9, 1.2, 2.2, 3.0, 0.7],
-        'koi_teq': [780, 1200, 650, 1500, 550, 850, 730, 1800]
-    }
-    
-    df = pd.DataFrame(data)
-    print(f"Створено датасет з {len(df)} рядків та {len(df.columns)} стовпців.")
-    
-    return df
+def load_data():
+    print("Start reading data...")
+
+    file_path = "./kepler_objects_of_interest.csv"
+    dataFrame = pandas.read_csv(file_path, comment='#')
+
+    print(dataFrame.head()) # just display first 5 rows
+
+    print(f"Loaded dataset with {len(dataFrame)} rows and {len(dataFrame.columns)} columns.")
+    return dataFrame
+
 
 # Крок 2: Попередня обробка даних
 def preprocess_data(df):
@@ -106,7 +93,7 @@ def evaluate_model(model, X_test, y_test, features):
     
     # Важливість ознак
     importances = model.feature_importances_
-    feature_importance = pd.DataFrame({
+    feature_importance = pandas.DataFrame({
         'Ознака': features,
         'Важливість': importances
     }).sort_values(by='Важливість', ascending=False)
@@ -115,45 +102,41 @@ def evaluate_model(model, X_test, y_test, features):
     
     # Візуалізація матриці плутанини
     cm = confusion_matrix(y_test, y_pred)
-    plt.figure(figsize=(8, 6))
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Матриця плутанини')
-    plt.colorbar()
-    plt.xticks([0, 1], ['Не екзопланета', 'Екзопланета'])
-    plt.yticks([0, 1], ['Не екзопланета', 'Екзопланета'])
+    pyplot.figure(figsize=(8, 6))
+    pyplot.imshow(cm, interpolation='nearest', cmap=pyplot.cm.Blues)
+    pyplot.title('Матриця плутанини')
+    pyplot.colorbar()
+    pyplot.xticks([0, 1], ['Не екзопланета', 'Екзопланета'])
+    pyplot.yticks([0, 1], ['Не екзопланета', 'Екзопланета'])
     
-    plt.ylabel('Справжній клас')
-    plt.xlabel('Передбачений клас')
-    plt.tight_layout()
-    plt.savefig('матриця_плутанини.png')
+    pyplot.ylabel('Справжній клас')
+    pyplot.xlabel('Передбачений клас')
+    pyplot.tight_layout()
+    pyplot.savefig('матриця_плутанини.png')
     
     return y_pred, accuracy
 
 # Головна функція
 def main():
-    """
-    Головна функція, яка виконує всі кроки процесу машинного навчання.
-    """
-    print("====== МОДЕЛЬ КЛАСИФІКАЦІЇ ЕКЗОПЛАНЕТ ======\n")
+    print("====== model of classification exoplanets ======\n")
     
-    # Крок 1: Завантаження даних
-    df = load_sample_data()
+    df = load_data()
     
     # Крок 2: Попередня обробка даних
-    df_processed, features = preprocess_data(df)
+    # df_processed, features = preprocess_data(df)
     
-    # Крок 3: Підготовка даних для навчання
-    X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
+    # # Крок 3: Підготовка даних для навчання
+    # X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
     
-    # Крок 4: Навчання моделі
-    model = train_model(X_train, y_train)
+    # # Крок 4: Навчання моделі
+    # model = train_model(X_train, y_train)
     
-    # Крок 5: Оцінка моделі
-    y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
+    # # Крок 5: Оцінка моделі
+    # y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
     
-    print("\n====== ВИСНОВОК ======")
-    print(f"Модель класифікації екзопланет досягла точності {accuracy*100:.2f}%.")
-    print("Зображення матриці плутанини збережено у файлі 'матриця_плутанини.png'.")
+    # print("\n====== ВИСНОВОК ======")
+    # print(f"Модель класифікації екзопланет досягла точності {accuracy*100:.2f}%.")
+    # print("Зображення матриці плутанини збережено у файлі 'матриця_плутанини.png'.")
 
 # Запускаємо програму
 if __name__ == "__main__":
