@@ -5,7 +5,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import matplotlib.pyplot as pyplot
-import pickle
+import argparse
 from help_functions import save_model, load_model
 
 def predict_on_new_data(file_path) -> pandas.DataFrame:
@@ -157,9 +157,25 @@ def evaluate_model(model, X_test, y_test, features):
     
     return y_pred, accuracy
 
-def main():
-    import argparse
+def train_model():
+    data_frame = load_data("./data/kepler_objects_of_interest.csv", "comma")
+    data_frame_processed, features = preprocess_data(data_frame)
+    X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(data_frame_processed, features)
+    model = train_model(X_train, y_train)
+    y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
+    save_model(model, scaler, features)
+
+    print("\n====== RESULT ======")
+    print(f"Accuracy: {accuracy*100:.2f}%.")
+
+
+def predict_on_new_data(file_path):
+    predictions = predict_on_new_data(file_path)
+
+    if predictions is not None:
+        save_predictions(predictions)
     
+def main():
     parser = argparse.ArgumentParser(description='Інструмент класифікації екзопланет')
     parser.add_argument('--train')
     parser.add_argument('--predict')
@@ -167,20 +183,9 @@ def main():
     args = parser.parse_args()
     
     if args.train:
-        data_frame = load_data("./data/kepler_objects_of_interest.csv", "comma")
-        data_frame_processed, features = preprocess_data(data_frame)
-        X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(data_frame_processed, features)
-        model = train_model(X_train, y_train)
-        y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
-        save_model(model, scaler, features)
-        
-        print("\n====== RESULT ======")
-        print(f"Accuracy: {accuracy*100:.2f}%.")
-
+        train_model()
     elif args.predict:
-        predictions = predict_on_new_data(args.predict)
-        if predictions is not None:
-            save_predictions(predictions)
+        predict_on_new_data(args.predict)
 
 if __name__ == "__main__":
     main()
