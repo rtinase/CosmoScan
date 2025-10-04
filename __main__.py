@@ -37,7 +37,7 @@ def development_loop(X_train, y_train, X_test, y_test, features):
     }
     
     grid_search = GridSearchCV(
-        RandomForestClassifier(random_state=42),
+        RandomForestClassifier(),
         small_param_grid,
         cv=3,
         scoring='accuracy',
@@ -150,9 +150,12 @@ def preprocess_data(dataFrame: pandas.DataFrame) -> tuple[pandas.DataFrame, list
     dataFrame['target'] = dataFrame['koi_disposition'].apply(
         lambda x: 1 if x in ['CONFIRMED', 'CANDIDATE'] else 0
     )
+
+    numeric_cols = dataFrame.select_dtypes(include=['number']).columns.tolist()
+    excluded_cols = ['target', 'kepid', 'rowid']
+    features = [col for col in numeric_cols if col not in excluded_cols]
     
-    # Вибираємо числові ознаки для навчання
-    features = ['koi_period', 'koi_duration', 'koi_depth', 'koi_model_snr', 'koi_prad', 'koi_teq']
+    print(f"Selected {len(features)} numeric features for training")
     
     # Заповнюємо пропущені значення середніми значеннями
     for col in features:
@@ -173,7 +176,7 @@ def prepare_training_data(dataFrame: pandas.DataFrame, features: list[str]) -> t
     
     # Розділення даних на тренувальний та тестовий набори
     X_train, X_test, y_train, y_test = train_test_split(
-        X_scaled, y, test_size=0.3, random_state=42
+        X_scaled, y, test_size=0.3
     )
     
     return X_train, X_test, y_train, y_test, scaler, features
@@ -183,8 +186,7 @@ def train_model(X_train, y_train) -> RandomForestClassifier:
     print("\nTrain model using Random Forest...")
     
     # Створення та навчання моделі випадкового лісу
-    model = RandomForestClassifier(n_estimators=100, random_state=42)
-    
+    model = RandomForestClassifier(n_estimators=100)
     # Навчання моделі
     model.fit(X_train, y_train)
     
