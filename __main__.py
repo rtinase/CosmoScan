@@ -176,7 +176,7 @@ def predict(file_path):
         save_predictions(predictions)
     
 def main():
-    parser = argparse.ArgumentParser(description='Інструмент класифікації екзопланет')
+    parser = argparse.ArgumentParser()
     parser.add_argument('--train')
     parser.add_argument('--predict')
     
