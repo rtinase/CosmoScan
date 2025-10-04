@@ -6,31 +6,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import matplotlib.pyplot as pyplot
 import pickle
-
-def save_model(model, scaler, features):
-    """Зберігає натреновану модель та пов'язані з нею об'єкти у файли"""
-    
-    # Зберігаємо модель
-    with open('exoplanet_model.pkl', 'wb') as f:
-        pickle.dump(model, f)
-    
-    # Зберігаємо scaler (важливо для правильного масштабування нових даних)
-    with open('exoplanet_scaler.pkl', 'wb') as f:
-        pickle.dump(scaler, f)
-    
-    # Зберігаємо список ознак
-    with open('exoplanet_features.pkl', 'wb') as f:
-        pickle.dump(features, f)
-    
-    print("Модель, скейлер та список ознак успішно збережено!")
+from help_functions import save_model, load_model
 
 def predict_on_new_data(file_path) -> pandas.DataFrame:
-    with open('exoplanet_model.pkl', 'rb') as f:
-        model = pickle.load(f)
-    with open('exoplanet_scaler.pkl', 'rb') as f:
-        scaler = pickle.load(f)
-    with open('exoplanet_features.pkl', 'rb') as f:
-        features = pickle.load(f)
+    model, scaler, features = load_model()
     
     # Завантажуємо нові дані
     print(f"Завантаження нових даних з {file_path}...")
