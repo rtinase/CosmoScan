@@ -16,9 +16,8 @@ def development_loop(X_train, y_train, X_test, y_test, features):
     """
     print("\n======= Starting Development Loop =======")
     
-    # Базова оцінка з крос-валідацією
     print("Performing baseline evaluation with 5-fold cross-validation:")
-    base_model = RandomForestClassifier(n_estimators=100, random_state=42)
+    base_model = RandomForestClassifier(n_estimators=100)
     cv_scores = cross_val_score(base_model, X_train, y_train, cv=5, scoring='accuracy')
     print(f"Baseline cross-validation accuracy: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
     
@@ -63,31 +62,6 @@ def development_loop(X_train, y_train, X_test, y_test, features):
     }).sort_values('Importance', ascending=False)
     print("\nTop 10 most important features:")
     print(feature_importance.head(10))
-    
-    # Додаємо анотації з цифрами
-    thresh = cm.max() / 2
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            plt.text(j, i, cm[i, j],
-                    horizontalalignment="center",
-                    color="white" if cm[i, j] > thresh else "black")
-    
-    plt.ylabel('True label')
-    plt.xlabel('Predicted label')
-    plt.tight_layout()
-    plt.savefig('confusion_matrix.png')
-    
-    # Precision-Recall крива
-    y_scores = best_model.predict_proba(X_test)[:, 1]
-    precision, recall, thresholds = precision_recall_curve(y_test, y_scores)
-
-    plt.figure(figsize=(8, 6))
-    plt.plot(recall, precision, marker='.')
-    plt.xlabel('Recall')
-    plt.ylabel('Precision')
-    plt.title('Precision-Recall Curve')
-    plt.grid(True)
-    plt.savefig('precision_recall_curve.png')
     
     return best_model
 
