@@ -38,7 +38,7 @@ def predict_on_new_data(file_path):
     
     # Завантажуємо нові дані
     print(f"Завантаження нових даних з {file_path}...")
-    new_data = pd.read_csv(file_path, comment='#')
+    new_data = load_data(file_path)
     
     # Обробка даних (як при тренуванні, але без створення цільової змінної)
     for col in features:
@@ -103,16 +103,11 @@ def save_predictions(predictions, output_file='prediction_results.csv'):
     print(f"Прогнозовано не екзопланет (0): {class_counts.get(0, 0)}")
     print(f"Прогнозовано екзопланет (1): {class_counts.get(1, 0)}")
 
-def load_data() -> pandas.DataFrame:
+def load_data(file_path: str) -> pandas.DataFrame:
     print("Start reading data...")
     print()
 
-    file_path = "./kepler_objects_of_interest.csv"
     dataFrame = pandas.read_csv(file_path, comment='#')
-
-    # print(dataFrame.head()) # just display first 5 rows
-
-    # print(f"Loaded dataset with {len(dataFrame)} rows and {len(dataFrame.columns)} columns.")
     return dataFrame
 
 def preprocess_data(dataFrame: pandas.DataFrame) -> tuple[pandas.DataFrame, list[str]]:
@@ -214,7 +209,7 @@ def main():
     
     if args.train:
         # Навчання нової моделі
-        df = load_data()
+        df = load_data("./kepler_objects_of_interest.csv")
         df_processed, features = preprocess_data(df)
         X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
         model = train_model(X_train, y_train)
