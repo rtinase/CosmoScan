@@ -1,3 +1,4 @@
+from typing import Union
 import pandas
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
@@ -38,7 +39,7 @@ def predict_on_new_data(file_path):
     
     # Завантажуємо нові дані
     print(f"Завантаження нових даних з {file_path}...")
-    new_data = load_data(file_path)
+    new_data = load_data(file_path, "semicolon")
     
     # Обробка даних (як при тренуванні, але без створення цільової змінної)
     for col in features:
@@ -103,11 +104,15 @@ def save_predictions(predictions, output_file='prediction_results.csv'):
     print(f"Прогнозовано не екзопланет (0): {class_counts.get(0, 0)}")
     print(f"Прогнозовано екзопланет (1): {class_counts.get(1, 0)}")
 
-def load_data(file_path: str) -> pandas.DataFrame:
-    print("Start reading data...")
-    print()
+def load_data(file_path: str, sign: Union["comma", "semicolon"]) -> pandas.DataFrame:
+    print("Start reading data...\n")
+    if sign == "comma":
+        dataFrame = pandas.read_csv(file_path, comment='#')
+    elif sign == "semicolon":
+        dataFrame = pandas.read_csv(file_path, sep=';', comment='#')
+    else:
+        raise ValueError("Unknown delimiter")
 
-    dataFrame = pandas.read_csv(file_path, comment='#')
     return dataFrame
 
 def preprocess_data(dataFrame: pandas.DataFrame) -> tuple[pandas.DataFrame, list[str]]:
@@ -209,7 +214,7 @@ def main():
     
     if args.train:
         # Навчання нової моделі
-        df = load_data("./kepler_objects_of_interest.csv")
+        df = load_data("./kepler_objects_of_interest.csv", "comma")
         df_processed, features = preprocess_data(df)
         X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
         model = train_model(X_train, y_train)
@@ -234,3 +239,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+    
