@@ -9,6 +9,7 @@ import matplotlib.pyplot as pyplot
 # Крок 1: Створення вибірки даних
 def load_data():
     print("Start reading data...")
+    print()
 
     file_path = "./kepler_objects_of_interest.csv"
     dataFrame = pandas.read_csv(file_path, comment='#')
@@ -116,10 +117,7 @@ def evaluate_model(model, X_test, y_test, features):
     
     return y_pred, accuracy
 
-# Головна функція
 def main():
-    print("====== model of classification exoplanets ======\n")
-    
     df = load_data()
     
     # Крок 2: Попередня обробка даних
@@ -138,6 +136,5 @@ def main():
     # print(f"Модель класифікації екзопланет досягла точності {accuracy*100:.2f}%.")
     # print("Зображення матриці плутанини збережено у файлі 'матриця_плутанини.png'.")
 
-# Запускаємо програму
 if __name__ == "__main__":
     main()
