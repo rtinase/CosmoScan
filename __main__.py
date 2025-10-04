@@ -157,7 +157,7 @@ def evaluate_model(model, X_test, y_test, features):
     
     return y_pred, accuracy
 
-def train_model():
+def train():
     data_frame = load_data("./data/kepler_objects_of_interest.csv", "comma")
     data_frame_processed, features = preprocess_data(data_frame)
     X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(data_frame_processed, features)
@@ -169,7 +169,7 @@ def train_model():
     print(f"Accuracy: {accuracy*100:.2f}%.")
 
 
-def predict_on_new_data(file_path):
+def predict(file_path):
     predictions = predict_on_new_data(file_path)
 
     if predictions is not None:
@@ -183,9 +183,9 @@ def main():
     args = parser.parse_args()
     
     if args.train:
-        train_model()
+        train()
     elif args.predict:
-        predict_on_new_data(args.predict)
+        predict(args.predict)
 
 if __name__ == "__main__":
     main()
