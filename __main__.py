@@ -6,8 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 import matplotlib.pyplot as pyplot
 
-# Крок 1: Створення вибірки даних
-def load_data():
+def load_data() -> pandas.DataFrame:
     print("Start reading data...")
     print()
 
@@ -19,16 +18,11 @@ def load_data():
     print(f"Loaded dataset with {len(dataFrame)} rows and {len(dataFrame.columns)} columns.")
     return dataFrame
 
-
-# Крок 2: Попередня обробка даних
-def preprocess_data(df):
-    """
-    Обробляє дані для підготовки їх до навчання моделі.
-    """
-    print("\nПопередня обробка даних...")
+def preprocess_data(dataFrame: pandas.DataFrame) -> tuple[pandas.DataFrame, list[str]]:
+    print("\n Start preprocessing of the data...")
     
     # Створюємо цільову змінну (1 - екзопланета, 0 - не екзопланета)
-    df['target'] = df['koi_disposition'].apply(
+    dataFrame['target'] = dataFrame['koi_disposition'].apply(
         lambda x: 1 if x in ['CONFIRMED', 'CANDIDATE'] else 0
     )
     
@@ -37,21 +31,17 @@ def preprocess_data(df):
     
     # Заповнюємо пропущені значення середніми значеннями
     for col in features:
-        df[col] = df[col].fillna(df[col].mean())
+        dataFrame[col] = dataFrame[col].fillna(dataFrame[col].mean())
     
-    return df, features
+    return dataFrame, features
 
-# Крок 3: Підготовка даних для навчання
-def prepare_training_data(df, features):
-    """
-    Готує дані для навчання моделі.
-    """
-    print("\nПідготовка даних для навчання...")
+def prepare_training_data(dataFrame: pandas.DataFrame, features: list[str]) -> tuple:
+    print("\nPrepare training data...")
     
     # Підготовка ознак та цільової змінної
-    X = df[features]
-    y = df['target']
-    
+    X = dataFrame[features]
+    y = dataFrame['target']
+
     # Масштабування ознак
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
@@ -63,12 +53,9 @@ def prepare_training_data(df, features):
     
     return X_train, X_test, y_train, y_test, scaler, features
 
-# Крок 4: Навчання моделі
-def train_model(X_train, y_train):
-    """
-    Навчає модель машинного навчання.
-    """
-    print("\nНавчання моделі випадкового лісу...")
+
+def train_model(X_train, y_train) -> RandomForestClassifier:
+    print("\nTrain model using Random Forest...")
     
     # Створення та навчання моделі випадкового лісу
     model = RandomForestClassifier(n_estimators=100, random_state=42)
@@ -118,23 +105,23 @@ def evaluate_model(model, X_test, y_test, features):
     return y_pred, accuracy
 
 def main():
-    df = load_data()
+    dataFrame = load_data()
     
-    # Крок 2: Попередня обробка даних
-    # df_processed, features = preprocess_data(df)
+    # Step 2, preprocess data
+    df_processed, features = preprocess_data(dataFrame)
+
+    # # Step 3, prepare data for training
+    X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
+
+    # # Step 4, train model
+    model = train_model(X_train, y_train)
+
+    # # Step 5, evaluate model
+    y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
     
-    # # Крок 3: Підготовка даних для навчання
-    # X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
-    
-    # # Крок 4: Навчання моделі
-    # model = train_model(X_train, y_train)
-    
-    # # Крок 5: Оцінка моделі
-    # y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
-    
-    # print("\n====== ВИСНОВОК ======")
-    # print(f"Модель класифікації екзопланет досягла точності {accuracy*100:.2f}%.")
-    # print("Зображення матриці плутанини збережено у файлі 'матриця_плутанини.png'.")
+    print("\n====== ВИСНОВОК ======")
+    print(f"Модель класифікації екзопланет досягла точності {accuracy*100:.2f}%.")
+    print("Зображення матриці плутанини збережено у файлі 'матриця_плутанини.png'.")
 
 if __name__ == "__main__":
     main()
