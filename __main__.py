@@ -1,10 +1,10 @@
 from typing import Union
 import pandas
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-import matplotlib.pyplot as pyplot
+from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_curve
+import matplotlib.pyplot as plt
 import argparse
 from help_functions import save_model, load_model
 
@@ -57,22 +57,12 @@ def development_loop(X_train, y_train, X_test, y_test, features):
     print(f"Test accuracy with best model: {test_accuracy:.4f}")
     
     # Аналіз важливості ознак
-    feature_importance = pd.DataFrame({
+    feature_importance = pandas.DataFrame({
         'Feature': features,
         'Importance': best_model.feature_importances_
     }).sort_values('Importance', ascending=False)
     print("\nTop 10 most important features:")
     print(feature_importance.head(10))
-    
-    # Виведення матриці плутанини
-    y_pred = best_model.predict(X_test)
-    cm = confusion_matrix(y_test, y_pred)
-    plt.figure(figsize=(8, 6))
-    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
-    plt.title('Confusion Matrix')
-    plt.colorbar()
-    plt.xticks([0, 1], ['False Positive', 'Exoplanet'])
-    plt.yticks([0, 1], ['False Positive', 'Exoplanet'])
     
     # Додаємо анотації з цифрами
     thresh = cm.max() / 2
