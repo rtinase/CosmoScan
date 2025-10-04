@@ -10,7 +10,15 @@
             "request": "launch",
             "program": "${workspaceFolder}/__main__.py",
             "console": "integratedTerminal",
-            "args": ["--predict", "trialData.csv"]
+            "args": ["--predict", "./data/trialData.csv"]
+        },
+        {
+            "name": "train model",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/__main__.py",
+            "console": "integratedTerminal",
+            "args": ["--train", "./data/kepler_objects_of_interest.csv"]
         }
     ]
 }

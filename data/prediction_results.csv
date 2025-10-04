@@ -1,0 +1,7 @@
+kepid,kepler_name,predicted_class,prediction_probability
+10910878,Kepler-229 c,1,0.94
+11446443,Kepler-1 b,1,0.73
+10666592,Kepler-2 b,1,0.88
+6922244,Kepler-8 b,1,0.78
+10984090,Kepler-466 c,1,0.97
+11442465,,1,0.66

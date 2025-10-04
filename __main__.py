@@ -24,16 +24,11 @@ def save_model(model, scaler, features):
     
     print("Модель, скейлер та список ознак успішно збережено!")
 
-def predict_on_new_data(file_path):
-    """Завантажує нові дані і робить прогнози, використовуючи збережену модель"""
-    
-    # Завантажуємо модель, скейлер і список ознак
+def predict_on_new_data(file_path) -> pandas.DataFrame:
     with open('exoplanet_model.pkl', 'rb') as f:
         model = pickle.load(f)
-    
     with open('exoplanet_scaler.pkl', 'rb') as f:
         scaler = pickle.load(f)
-    
     with open('exoplanet_features.pkl', 'rb') as f:
         features = pickle.load(f)
     
@@ -70,39 +65,50 @@ def predict_on_new_data(file_path):
         )
     
     return new_data
-def save_predictions(predictions, output_file='prediction_results.csv'):
-    """Зберігає результати прогнозування у файл і показує статистику"""
+
+def save_predictions(predictions: pandas.DataFrame):
+    cols_to_save = ['kepid', 'kepler_name', 'predicted_class', 'prediction_probability']
+    available_cols = [col for col in cols_to_save if col in predictions.columns]
     
-    # Зберігаємо в CSV
-    predictions.to_csv(output_file, index=False)
-    print(f"Прогнози збережено у файлі {output_file}")
+    if not available_cols:
+        print("Помилка: Жодна з бажаних колонок не знайдена в результатах")
+        return
+
+    for col in cols_to_save:
+        if col not in available_cols:
+            print(f"Інформація: Колонка '{col}' не знайдена в результатах")
     
-    # Створюємо звіт про результати
-    if 'actual_class' in predictions.columns:
-        # Обчислюємо точність, якщо доступні справжні класи
-        accuracy = (predictions['actual_class'] == predictions['predicted_class']).mean()
-        print(f"Точність прогнозу на нових даних: {accuracy:.4f} (або {accuracy*100:.2f}%)")
+    result_df = predictions[available_cols].copy()
+    output_file='./data/prediction_results.csv'
+    result_df.to_csv(output_file, index=False)
+    print(f"Прогнози збережено у файлі {output_file} з колонками: {', '.join(available_cols)}")
+    
+    # # Створюємо звіт про результати
+    # if 'actual_class' in predictions.columns:
+    #     # Обчислюємо точність, якщо доступні справжні класи
+    #     accuracy = (predictions['actual_class'] == predictions['predicted_class']).mean()
+    #     print(f"Точність прогнозу на нових даних: {accuracy:.4f} (або {accuracy*100:.2f}%)")
         
-        # Створюємо матрицю плутанини
-        cm = confusion_matrix(predictions['actual_class'], predictions['predicted_class'])
+    #     # Створюємо матрицю плутанини
+    #     cm = confusion_matrix(predictions['actual_class'], predictions['predicted_class'])
         
-        pyplot.figure(figsize=(8, 6))
-        pyplot.imshow(cm, interpolation='nearest', cmap=pyplot.cm.Blues)
-        pyplot.title('Матриця плутанини для нових даних')
-        pyplot.colorbar()
-        pyplot.xticks([0, 1], ['Не екзопланета', 'Екзопланета'])
-        pyplot.yticks([0, 1], ['Не екзопланета', 'Екзопланета'])
-        pyplot.ylabel('Справжній клас')
-        pyplot.xlabel('Передбачений клас')
-        pyplot.tight_layout()
-        pyplot.savefig('нові_дані_матриця_плутанини.png')
-        print("Матрицю плутанини збережено як 'нові_дані_матриця_плутанини.png'")
+    #     pyplot.figure(figsize=(8, 6))
+    #     pyplot.imshow(cm, interpolation='nearest', cmap=pyplot.cm.Blues)
+    #     pyplot.title('Матриця плутанини для нових даних')
+    #     pyplot.colorbar()
+    #     pyplot.xticks([0, 1], ['Не екзопланета', 'Екзопланета'])
+    #     pyplot.yticks([0, 1], ['Не екзопланета', 'Екзопланета'])
+    #     pyplot.ylabel('Справжній клас')
+    #     pyplot.xlabel('Передбачений клас')
+    #     pyplot.tight_layout()
+    #     pyplot.savefig('нові_дані_матриця_плутанини.png')
+    #     print("Матрицю плутанини збережено як 'нові_дані_матриця_плутанини.png'")
     
-    # Зведення прогнозів
-    class_counts = predictions['predicted_class'].value_counts()
-    print("\nЗведення прогнозів:")
-    print(f"Прогнозовано не екзопланет (0): {class_counts.get(0, 0)}")
-    print(f"Прогнозовано екзопланет (1): {class_counts.get(1, 0)}")
+    # # Зведення прогнозів
+    # class_counts = predictions['predicted_class'].value_counts()
+    # print("\nЗведення прогнозів:")
+    # print(f"Прогнозовано не екзопланет (0): {class_counts.get(0, 0)}")
+    # print(f"Прогнозовано екзопланет (1): {class_counts.get(1, 0)}")
 
 def load_data(file_path: str, sign: Union["comma", "semicolon"]) -> pandas.DataFrame:
     print("Start reading data...\n")
@@ -205,37 +211,26 @@ def main():
     import argparse
     
     parser = argparse.ArgumentParser(description='Інструмент класифікації екзопланет')
-    parser.add_argument('--train', action='store_true', help='Навчити нову модель')
-    parser.add_argument('--predict', type=str, help='Шлях до нових даних для прогнозування')
-    parser.add_argument('--output', type=str, default='prediction_results.csv', 
-                        help='Вихідний файл для результатів прогнозування')
+    parser.add_argument('--train')
+    parser.add_argument('--predict')
     
     args = parser.parse_args()
     
     if args.train:
-        # Навчання нової моделі
-        df = load_data("./kepler_objects_of_interest.csv", "comma")
-        df_processed, features = preprocess_data(df)
-        X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(df_processed, features)
+        data_frame = load_data("./data/kepler_objects_of_interest.csv", "comma")
+        data_frame_processed, features = preprocess_data(data_frame)
+        X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(data_frame_processed, features)
         model = train_model(X_train, y_train)
         y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
-        
-        # Зберігаємо модель для подальшого використання
         save_model(model, scaler, features)
         
         print("\n====== RESULT ======")
         print(f"Accuracy: {accuracy*100:.2f}%.")
-        print("Confusion matrix image saved as 'confusion_matrix.png'.")
-        print("Модель збережено для майбутніх прогнозів.")
-    
+
     elif args.predict:
-        # Прогнозування на нових даних
         predictions = predict_on_new_data(args.predict)
         if predictions is not None:
-            save_predictions(predictions, args.output)
-    
-    else:
-        parser.print_help()
+            save_predictions(predictions)
 
 if __name__ == "__main__":
     main()
