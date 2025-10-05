@@ -3,7 +3,7 @@ from fastapi.responses import FileResponse
 import tempfile
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from __main__ import predict
+from ml import predict
 
 app = FastAPI(title="Exoplanet Classification API",
               description="API for expoplanet finding from Kepler Data")
