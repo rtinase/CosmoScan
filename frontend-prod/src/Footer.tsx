@@ -1,6 +1,6 @@
 // Footer.tsx
 import React from "react";
-import { Mail, Github, Linkedin } from "lucide-react";
+import { Mail} from "lucide-react";
 
 type Member = {
   name: string;
