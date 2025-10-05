@@ -6,12 +6,11 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_curve
 import matplotlib.pyplot as plt
 import argparse
-
 import uvicorn
-from help_functions import save_model, load_model
+from help_functions import save_model, load_model, load_data
 
 
-def development_loop(X_train, y_train, X_test, y_test, features): # should be checked if this one or train method is better 
+def train_model(X_train, y_train, X_test, y_test, features): # should be checked if this one or train method is better 
     print("START PROCESS: train model")
     base_model = RandomForestClassifier(n_estimators=100)
     cross_val_score(base_model, X_train, y_train, cv=5, scoring='accuracy')
@@ -57,7 +56,7 @@ def development_loop(X_train, y_train, X_test, y_test, features): # should be ch
     return best_model
 
 
-def predict_on_new_data(file_path) -> pandas.DataFrame:
+def predict(file_path) -> pandas.DataFrame:
     model, scaler, features = load_model()
     
     print(f"Завантаження нових даних з {file_path}...")
@@ -121,16 +120,7 @@ def save_predictions(predictions: pandas.DataFrame):
     print(f"Прогнозовано не екзопланет (0): {class_counts.get(0, 0)}")
     print(f"Прогнозовано екзопланет (1): {class_counts.get(1, 0)}")
 
-def load_data(file_path: str, sign: Union["comma", "semicolon"]) -> pandas.DataFrame:
-    print("PROCESS START: reading data...\n")
-    if sign == "comma":
-        dataFrame = pandas.read_csv(file_path, comment='#')
-    elif sign == "semicolon":
-        dataFrame = pandas.read_csv(file_path, sep=';', comment='#')
-    else:
-        raise ValueError("Unknown delimiter")
-    print("PROCESS END: reading data...\n")
-    return dataFrame
+
 
 def preprocess_data(dataFrame: pandas.DataFrame) -> tuple[pandas.DataFrame, list[str]]:
     print("\n Start preprocessing of the data...")
@@ -170,16 +160,6 @@ def prepare_training_data(dataFrame: pandas.DataFrame, features: list[str]) -> t
     
     return X_train, X_test, y_train, y_test, scaler, features
 
-
-def train_model(X_train, y_train) -> RandomForestClassifier:
-    print("\nTrain model using Random Forest...")
-    
-    model = RandomForestClassifier(n_estimators=100)
-    # Навчання моделі
-    model.fit(X_train, y_train)
-    
-    return model
-
 def evaluate_model(model, X_test, y_test, features):
     print("\nОцінка моделі...")
     
@@ -205,7 +185,7 @@ def train_process():
     data_frame = load_data("./data/kepler_objects_of_interest.csv", "comma")
     data_frame_processed, features = preprocess_data(data_frame)
     X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(data_frame_processed, features)
-    model = development_loop(X_train, y_train, X_test, y_test, features)
+    model = train_model(X_train, y_train, X_test, y_test, features)
     y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
     save_model(model, scaler, features)
 
@@ -213,8 +193,8 @@ def train_process():
     print(f"Accuracy: {accuracy*100:.2f}%.")
 
 
-def predict(file_path):
-    predictions = predict_on_new_data(file_path)
+def predict_process(file_path):
+    predictions = predict(file_path)
 
     if predictions is not None:
         save_predictions(predictions)
@@ -231,7 +211,7 @@ def main():
     if args.train:
         train_process()
     elif args.predict:
-        predict(args.predict)
+        predict_process(args.predict)
 
 if __name__ == "__main__":
     main()

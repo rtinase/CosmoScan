@@ -2,40 +2,32 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 import os
-from __main__ import predict_on_new_data
+from __main__ import predict
 
 app = FastAPI(title="Exoplanet Classification API",
               description="API для класифікації екзопланет за даними Kepler")
 
 @app.post("/predict/")
 async def predict_exoplanet(file: UploadFile = File(...)):
-    """
-    Завантажте CSV-файл з даними Kepler і отримайте прогноз щодо екзопланет.
-    """
-    # Перевірка, чи є файл CSV
     if not file.filename.endswith('.csv'):
-        raise HTTPException(status_code=400, detail="Підтримуються лише CSV файли")
+        raise HTTPException(status_code=400, detail="CSV files are supported only")
     
     try:
-        # Зберігаємо завантажений файл у тимчасовий файл
         contents = await file.read()
         with tempfile.NamedTemporaryFile(delete=False, suffix='.csv') as temp_file:
             temp_file_path = temp_file.name
             temp_file.write(contents)
         
-        # Визначаємо роздільник на основі вмісту
         with open(temp_file_path, 'r') as f:
             first_line = f.readline()
             delimiter = "semicolon" if ";" in first_line else "comma"
         
-        # Робимо прогнози використовуючи існуючу функцію
-        predictions = predict_on_new_data(temp_file_path)
+        predictions = predict(temp_file_path)
         
         if predictions is None:
             raise HTTPException(status_code=500, 
-                               detail="Не вдалося зробити прогнози. Перевірте, чи файл містить необхідні колонки.")
+                               detail="Did not manage to make predictions. Check server logs.")
         
-        # Збереження результатів у новий CSV файл
         result_path = f"{temp_file_path}_results.csv"
         
         # Фільтруємо колонки для відповіді
