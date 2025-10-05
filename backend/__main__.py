@@ -170,15 +170,6 @@ def evaluate_model(model, X_test, y_test, features):
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Точність моделі: {accuracy:.4f} (або {accuracy*100:.2f}%)")
     
-    # Важливість ознак
-    importances = model.feature_importances_
-    feature_importance = pandas.DataFrame({
-        'Ознака': features,
-        'Важливість': importances
-    }).sort_values(by='Важливість', ascending=False)
-    print("\nВажливість ознак:")
-    print(feature_importance)
-    
     return y_pred, accuracy
 
 def train_process():

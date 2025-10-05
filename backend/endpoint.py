@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import FileResponse
 import tempfile
 from fastapi.middleware.cors import CORSMiddleware
 import os
@@ -39,18 +39,15 @@ async def predict_exoplanet(file: UploadFile = File(...)):
         
         result_path = f"{temp_file_path}_results.csv"
         
-        # Фільтруємо колонки для відповіді
         cols_to_save = ['kepid', 'kepler_name', 'predicted_class', 'prediction_probability']
         available_cols = [col for col in cols_to_save if col in predictions.columns]
         
         if not available_cols:
-            raise HTTPException(status_code=500, detail="У результатах не знайдено жодної бажаної колонки")
+            raise HTTPException(status_code=500, detail="In the results, no desired columns were found")
             
-        # Створюємо датафрейм тільки з бажаними колонками
         result_df = predictions[available_cols].copy()
         result_df.to_csv(result_path, index=False)
         
-        # Повертаємо файл з результатами
         return FileResponse(
             result_path,
             media_type="text/csv",
@@ -58,14 +55,12 @@ async def predict_exoplanet(file: UploadFile = File(...)):
         )
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Сталася помилка: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
         
     finally:
-        # Прибираємо за собою тимчасові файли
         if 'temp_file_path' in locals():
             try:
                 os.remove(temp_file_path)
-                # Файл з результатами буде видалено після відправки відповіді
             except:
                 pass
 
