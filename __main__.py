@@ -6,32 +6,25 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_curve
 import matplotlib.pyplot as plt
 import argparse
+
+import uvicorn
 from help_functions import save_model, load_model
 
 
-def development_loop(X_train, y_train, X_test, y_test, features):
-    """
-    Цикл розробки моделі: крос-валідація, тюнинг гіперпараметрів,
-    оцінка різних моделей
-    """
-    print("\n======= Starting Development Loop =======")
-    
-    print("Performing baseline evaluation with 5-fold cross-validation:")
+def development_loop(X_train, y_train, X_test, y_test, features): # should be checked if this one or train method is better 
+    print("START PROCESS: train model")
     base_model = RandomForestClassifier(n_estimators=100)
-    cv_scores = cross_val_score(base_model, X_train, y_train, cv=5, scoring='accuracy')
-    print(f"Baseline cross-validation accuracy: {cv_scores.mean():.4f} ± {cv_scores.std():.4f}")
+    cross_val_score(base_model, X_train, y_train, cv=5, scoring='accuracy')
     
-    # Тюнинг гіперпараметрів
-    print("\nPerforming hyperparameter tuning with GridSearchCV:")
-    param_grid = {
+    param_grid = { # take this or this parameter
         'n_estimators': [50, 100, 200],
         'max_depth': [None, 10, 20, 30],
         'min_samples_split': [2, 5, 10],
         'min_samples_leaf': [1, 2, 4]
     }
-    # Використовуємо невелику підмножину параметрів для демонстрації
-    # В реальному проекті можна розширити пошук
-    small_param_grid = {
+    
+
+    small_param_grid = { # take this or this parameter
         'n_estimators': [100, 200],
         'max_depth': [None, 20]
     }
@@ -50,12 +43,10 @@ def development_loop(X_train, y_train, X_test, y_test, features):
     print(f"\nBest parameters found: {grid_search.best_params_}")
     print(f"Best cross-validation accuracy: {grid_search.best_score_:.4f}")
     
-    # Оцінюємо найкращу модель на тестових даних
     best_model = grid_search.best_estimator_
     test_accuracy = best_model.score(X_test, y_test)
     print(f"Test accuracy with best model: {test_accuracy:.4f}")
     
-    # Аналіз важливості ознак
     feature_importance = pandas.DataFrame({
         'Feature': features,
         'Importance': best_model.feature_importances_
@@ -69,11 +60,9 @@ def development_loop(X_train, y_train, X_test, y_test, features):
 def predict_on_new_data(file_path) -> pandas.DataFrame:
     model, scaler, features = load_model()
     
-    # Завантажуємо нові дані
     print(f"Завантаження нових даних з {file_path}...")
     new_data = load_data(file_path, "semicolon")
     
-    # Обробка даних (як при тренуванні, але без створення цільової змінної)
     for col in features:
         if col in new_data.columns:
             new_data[col] = new_data[col].fillna(new_data[col].mean())
@@ -185,7 +174,6 @@ def prepare_training_data(dataFrame: pandas.DataFrame, features: list[str]) -> t
 def train_model(X_train, y_train) -> RandomForestClassifier:
     print("\nTrain model using Random Forest...")
     
-    # Створення та навчання моделі випадкового лісу
     model = RandomForestClassifier(n_estimators=100)
     # Навчання моделі
     model.fit(X_train, y_train)
@@ -213,13 +201,13 @@ def evaluate_model(model, X_test, y_test, features):
     
     return y_pred, accuracy
 
-def train():
+def train_process():
     data_frame = load_data("./data/kepler_objects_of_interest.csv", "comma")
     data_frame_processed, features = preprocess_data(data_frame)
     X_train, X_test, y_train, y_test, scaler, features = prepare_training_data(data_frame_processed, features)
-    best_model = development_loop(X_train, y_train, X_test, y_test, features)
-    y_pred, accuracy = evaluate_model(best_model, X_test, y_test, features)
-    save_model(best_model, scaler, features)
+    model = development_loop(X_train, y_train, X_test, y_test, features)
+    y_pred, accuracy = evaluate_model(model, X_test, y_test, features)
+    save_model(model, scaler, features)
 
     print("\n====== RESULT ======")
     print(f"Accuracy: {accuracy*100:.2f}%.")
@@ -238,8 +226,10 @@ def main():
     
     args = parser.parse_args()
     
+    uvicorn.run("endpoint:app", host="0.0.0.0", port=8000)
+
     if args.train:
-        train()
+        train_process()
     elif args.predict:
         predict(args.predict)
 
