@@ -20,7 +20,6 @@ async def predict_exoplanet(file: UploadFile = File(...)):
         
         with open(temp_file_path, 'r') as f:
             first_line = f.readline()
-            delimiter = "semicolon" if ";" in first_line else "comma"
         
         predictions = predict(temp_file_path)
         
@@ -31,7 +30,7 @@ async def predict_exoplanet(file: UploadFile = File(...)):
         result_path = f"{temp_file_path}_results.csv"
         
         # Фільтруємо колонки для відповіді
-        cols_to_save = ['kepid', 'kepoi_name', 'kepler_name', 'predicted_class', 'prediction_probability']
+        cols_to_save = ['kepid', 'kepler_name', 'predicted_class', 'prediction_probability']
         available_cols = [col for col in cols_to_save if col in predictions.columns]
         
         if not available_cols:
@@ -59,3 +58,20 @@ async def predict_exoplanet(file: UploadFile = File(...)):
                 # Файл з результатами буде видалено після відправки відповіді
             except:
                 pass
+
+
+@app.get("/health")
+async def health_check():
+    if model_files_exist():
+        return {"status": "ok"}
+    else:
+        return {"status": "error", "detail": "Model files are missing"}
+
+
+def model_files_exist() -> bool:
+    required_files = [
+        './models/exoplanet_model.joblib',
+        './models/exoplanet_scaler.joblib',
+        './models/exoplanet_features.joblib'
+    ]
+    return all(os.path.isfile(f) for f in required_files)
