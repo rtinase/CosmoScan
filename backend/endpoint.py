@@ -1,11 +1,21 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
+from fastapi.middleware.cors import CORSMiddleware
 import os
 from __main__ import predict
 
 app = FastAPI(title="Exoplanet Classification API",
-              description="API для класифікації екзопланет за даними Kepler")
+              description="API for expoplanet finding from Kepler Data")
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/predict/")
 async def predict_exoplanet(file: UploadFile = File(...)):

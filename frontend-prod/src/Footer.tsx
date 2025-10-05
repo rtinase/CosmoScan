@@ -1,13 +1,9 @@
-// Footer.tsx
 import React from "react";
 import { Mail} from "lucide-react";
 
 type Member = {
   name: string;
-  role?: string;
   email: string;
-  github?: string;
-  linkedin?: string;
 };
 
 const members: Member[] = [
