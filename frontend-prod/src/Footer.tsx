@@ -49,9 +49,6 @@ const Footer: React.FC = () => {
 
                 <div>
                   <p className="font-semibold leading-tight">{m.name}</p>
-                  {m.role && (
-                    <p className="text-sm text-purple-200/90">{m.role}</p>
-                  )}
                 </div>
               </div>
 
