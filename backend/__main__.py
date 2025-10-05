@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, confusion_matrix, precision_recall_c
 import matplotlib.pyplot as plt
 import argparse
 import uvicorn
-from help_functions import save_model, load_model, load_data
+from help_functions import save_model, load_model, load_data, get_avaliable_cols_from
 
 
 def train_model(X_train, y_train, X_test, y_test, features): # should be checked if this one or train method is better 
@@ -92,16 +92,7 @@ def predict(file_path) -> pandas.DataFrame:
     return new_data
 
 def save_predictions(predictions: pandas.DataFrame):
-    cols_to_save = ['kepid', 'kepler_name', 'predicted_class', 'prediction_probability']
-    available_cols = [col for col in cols_to_save if col in predictions.columns]
-    
-    if not available_cols:
-        print("Помилка: Жодна з бажаних колонок не знайдена в результатах")
-        return
-
-    for col in cols_to_save:
-        if col not in available_cols:
-            print(f"Інформація: Колонка '{col}' не знайдена в результатах")
+    available_cols = get_avaliable_cols_from(predictions)
     
     result_df = predictions[available_cols].copy()
     output_file='./data/prediction_results.csv'
@@ -169,6 +160,15 @@ def evaluate_model(model, X_test, y_test, features):
     # Розрахунок точності
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Точність моделі: {accuracy:.4f} (або {accuracy*100:.2f}%)")
+    
+    # Важливість ознак
+    importances = model.feature_importances_
+    feature_importance = pandas.DataFrame({
+        'Ознака': features,
+        'Важливість': importances
+    }).sort_values(by='Важливість', ascending=False)
+    print("\nВажливість ознак:")
+    print(feature_importance)
     
     return y_pred, accuracy
 

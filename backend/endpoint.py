@@ -4,6 +4,7 @@ import tempfile
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from __main__ import predict
+from help_functions import get_avaliable_cols_from
 
 app = FastAPI(title="Exoplanet Classification API",
               description="API for expoplanet finding from Kepler Data")
@@ -38,12 +39,10 @@ async def predict_exoplanet(file: UploadFile = File(...)):
                                detail="Did not manage to make predictions. Check server logs.")
         
         result_path = f"{temp_file_path}_results.csv"
+
+        available_cols = get_avaliable_cols_from(predictions, "api")
+
         
-        cols_to_save = ['kepid', 'kepler_name', 'predicted_class', 'prediction_probability']
-        available_cols = [col for col in cols_to_save if col in predictions.columns]
-        
-        if not available_cols:
-            raise HTTPException(status_code=500, detail="In the results, no desired columns were found")
             
         result_df = predictions[available_cols].copy()
         result_df.to_csv(result_path, index=False)

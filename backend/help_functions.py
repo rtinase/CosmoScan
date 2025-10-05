@@ -1,3 +1,4 @@
+from http.client import HTTPException
 from typing import Any, Union
 import joblib
 import os
@@ -36,3 +37,22 @@ def load_data(file_path: str, sign: Union["comma", "semicolon"]) -> pandas.DataF
         raise ValueError("Unknown delimiter")
     print("PROCESS END: reading data...\n")
     return dataFrame    
+
+
+def get_avaliable_cols_from(dataFrame: pandas.DataFrame, mode: Union["api", "console"] = "console") -> list[str]:
+    cols_to_save = ['kepid', 'kepler_name', 'predicted_class', 'prediction_probability']
+    available_cols = [col for col in cols_to_save if col in dataFrame.columns]
+
+    if mode == "api":
+        if not available_cols:
+            raise HTTPException(status_code=500, detail="In the results, no desired columns were found")
+        for col in cols_to_save:
+            if col not in available_cols:
+                raise Warning(f"Info: Column '{col}' was not found in the results")
+    elif mode == "console":     
+        if not available_cols:
+            raise ValueError("Error: None of the desired columns were found in the results")
+        for col in cols_to_save:
+            if col not in available_cols:
+                raise Warning(f"Info: Column '{col}' was not found in the results")
+    return available_cols
